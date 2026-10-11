@@ -13,11 +13,14 @@ public class Cliente {
     private String email;
     private String cpf;
 
+    private static final java.util.regex.Pattern EMAIL_PATTERN =
+            java.util.regex.Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+
     public Cliente(String id, String nome, String email, String cpf) {
         this.id = (id != null && !id.isBlank()) ? id : UUID.randomUUID().toString();
         this.nome = validarNaoVazio(nome, "O nome do cliente não pode ser vazio.");
-        this.email = validarNaoVazio(email, "O e-mail do cliente não pode ser vazio.");
-        this.cpf = validarNaoVazio(cpf, "O CPF do cliente não pode ser vazio.");
+        this.email = validarEmail(email);
+        this.cpf = normalizarEValidarCpf(cpf);
     }
 
     public Cliente(String nome, String email, String cpf) {
@@ -29,6 +32,27 @@ public class Cliente {
             throw new IllegalArgumentException(mensagemErro);
         }
         return valor.trim();
+    }
+
+    private static String validarEmail(String email) {
+        String emailLimpo = validarNaoVazio(email, "O e-mail do cliente não pode ser vazio.");
+        if (!EMAIL_PATTERN.matcher(emailLimpo).matches()) {
+            throw new IllegalArgumentException("Formato de e-mail inválido: " + emailLimpo);
+        }
+        return emailLimpo.toLowerCase();
+    }
+
+    private static String normalizarEValidarCpf(String cpf) {
+        String cpfLimpo = validarNaoVazio(cpf, "O CPF do cliente não pode ser vazio.");
+        String digitos = cpfLimpo.replaceAll("\\D", "");
+        if (digitos.length() != 11) {
+            throw new IllegalArgumentException("O CPF deve conter exatamente 11 dígitos numéricos.");
+        }
+        return String.format("%s.%s.%s-%s",
+                digitos.substring(0, 3),
+                digitos.substring(3, 6),
+                digitos.substring(6, 9),
+                digitos.substring(9, 11));
     }
 
     public String getId() {
@@ -48,7 +72,7 @@ public class Cliente {
     }
 
     public void setEmail(String email) {
-        this.email = validarNaoVazio(email, "O e-mail do cliente não pode ser vazio.");
+        this.email = validarEmail(email);
     }
 
     public String getCpf() {
@@ -56,7 +80,7 @@ public class Cliente {
     }
 
     public void setCpf(String cpf) {
-        this.cpf = validarNaoVazio(cpf, "O CPF do cliente não pode ser vazio.");
+        this.cpf = normalizarEValidarCpf(cpf);
     }
 
     @Override

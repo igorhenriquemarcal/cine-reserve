@@ -35,7 +35,7 @@ public class ClienteJsonRepository implements ClienteRepository {
 
             File arquivo = caminhoArquivo.toFile();
             if (!arquivo.exists() || arquivo.length() == 0) {
-                mapper.writeValue(arquivo, Collections.emptyList());
+                ArquivoJsonHelper.gravarAtomicamente(caminhoArquivo, Collections.emptyList(), mapper);
                 return;
             }
 
@@ -54,7 +54,7 @@ public class ClienteJsonRepository implements ClienteRepository {
             List<ClienteJsonDto> dtos = cacheClientes.values().stream()
                     .map(ClienteJsonDto::new)
                     .toList();
-            mapper.writeValue(caminhoArquivo.toFile(), dtos);
+            ArquivoJsonHelper.gravarAtomicamente(caminhoArquivo, dtos, mapper);
         } catch (IOException e) {
             throw new RuntimeException("Erro ao persistir clientes no arquivo JSON: " + caminhoArquivo, e);
         }
@@ -76,8 +76,9 @@ public class ClienteJsonRepository implements ClienteRepository {
     @Override
     public synchronized Optional<Cliente> buscarPorCpf(String cpf) {
         if (cpf == null) return Optional.empty();
+        String digitosBuscados = cpf.replaceAll("\\D", "");
         return cacheClientes.values().stream()
-                .filter(c -> c.getCpf().equalsIgnoreCase(cpf.trim()))
+                .filter(c -> c.getCpf().replaceAll("\\D", "").equals(digitosBuscados))
                 .findFirst();
     }
 

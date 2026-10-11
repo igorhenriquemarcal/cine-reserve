@@ -35,7 +35,7 @@ public class SessaoJsonRepository implements SessaoRepository {
 
             File arquivo = caminhoArquivo.toFile();
             if (!arquivo.exists() || arquivo.length() == 0) {
-                mapper.writeValue(arquivo, Collections.emptyList());
+                ArquivoJsonHelper.gravarAtomicamente(caminhoArquivo, Collections.emptyList(), mapper);
                 return;
             }
 
@@ -54,7 +54,7 @@ public class SessaoJsonRepository implements SessaoRepository {
             List<SessaoJsonDto> dtos = cacheSessoes.values().stream()
                     .map(SessaoJsonDto::new)
                     .toList();
-            mapper.writeValue(caminhoArquivo.toFile(), dtos);
+            ArquivoJsonHelper.gravarAtomicamente(caminhoArquivo, dtos, mapper);
         } catch (IOException e) {
             throw new RuntimeException("Erro ao persistir sessões no arquivo JSON: " + caminhoArquivo, e);
         }

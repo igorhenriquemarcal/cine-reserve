@@ -45,7 +45,7 @@ public class ReservaJsonRepository implements ReservaRepository {
 
             File arquivo = caminhoArquivo.toFile();
             if (!arquivo.exists() || arquivo.length() == 0) {
-                mapper.writeValue(arquivo, Collections.emptyList());
+                ArquivoJsonHelper.gravarAtomicamente(caminhoArquivo, Collections.emptyList(), mapper);
                 return;
             }
 
@@ -63,7 +63,8 @@ public class ReservaJsonRepository implements ReservaRepository {
                             .filter(Objects::nonNull)
                             .toList();
 
-                    if (!assentos.isEmpty()) {
+                    // Garante que todos os assentos originalmente reservados continuam existindo na sala da sessão
+                    if (assentos.size() == dto.getCodigosAssentos().size() && !assentos.isEmpty()) {
                         Reserva reserva = new Reserva(
                                 dto.getId(),
                                 cliente,
@@ -86,7 +87,7 @@ public class ReservaJsonRepository implements ReservaRepository {
             List<ReservaJsonDto> dtos = cacheReservas.values().stream()
                     .map(ReservaJsonDto::new)
                     .toList();
-            mapper.writeValue(caminhoArquivo.toFile(), dtos);
+            ArquivoJsonHelper.gravarAtomicamente(caminhoArquivo, dtos, mapper);
         } catch (IOException e) {
             throw new RuntimeException("Erro ao persistir reservas no arquivo JSON: " + caminhoArquivo, e);
         }

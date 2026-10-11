@@ -137,4 +137,25 @@ class ReservaServiceTest {
         assertFalse(sessaoPersistida.estaDisponivel("A1"));
         assertEquals(1, reservaRepository.buscarPorSessaoId(sessao.getId()).size());
     }
+
+    @Test
+    @DisplayName("Deve falhar com RegraDeNegocioException ao passar assento duplicado na mesma reserva")
+    void deveFalharAoTentarReservarAssentoDuplicadoNaMesmaRequisicao() {
+        RegraDeNegocioException ex = assertThrows(RegraDeNegocioException.class, () ->
+                reservaService.realizarReserva(cliente1.getId(), sessao.getId(), List.of("A1", "A1"))
+        );
+        assertTrue(ex.getMessage().contains("duplicado"));
+    }
+
+    @Test
+    @DisplayName("Deve falhar com RegraDeNegocioException ao tentar cancelar reserva já cancelada")
+    void deveFalharAoCancelarReservaJaCancelada() {
+        Reserva reserva = reservaService.realizarReserva(cliente1.getId(), sessao.getId(), List.of("A1"));
+        reservaService.cancelarReserva(reserva.getId());
+
+        RegraDeNegocioException ex = assertThrows(RegraDeNegocioException.class, () ->
+                reservaService.cancelarReserva(reserva.getId())
+        );
+        assertTrue(ex.getMessage().contains("já se encontra cancelada"));
+    }
 }

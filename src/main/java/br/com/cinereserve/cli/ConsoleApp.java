@@ -36,6 +36,9 @@ public class ConsoleApp {
         boolean rodando = true;
         while (rodando) {
             exibirMenuPrincipal();
+            if (!scanner.hasNextLine()) {
+                break;
+            }
             String opcao = scanner.nextLine().trim();
 
             switch (opcao) {
@@ -207,7 +210,7 @@ public class ConsoleApp {
             return;
         }
 
-        List<String> codigos = Arrays.stream(linhaAssentos.split(","))
+        List<String> codigos = Arrays.stream(linhaAssentos.split("[,;\\s]+"))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .toList();

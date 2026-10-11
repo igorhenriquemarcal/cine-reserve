@@ -62,10 +62,21 @@ public class ReservaService {
                 throw new RegraDeNegocioException("Não é possível realizar reservas para uma sessão que já começou ou encerrou.");
             }
 
-            // 1. Validação prévia de todos os assentos (tudo ou nada)
-            List<Assento> assentosParaReservar = new ArrayList<>();
+            // 1. Normalização e validação de duplicidade na lista de assentos
+            Set<String> assentosUnicos = new LinkedHashSet<>();
             for (String codigo : codigosAssentos) {
+                if (codigo == null || codigo.trim().isEmpty()) {
+                    throw new RegraDeNegocioException("Código de assento inválido ou vazio informado.");
+                }
                 String codigoFormatado = codigo.trim().toUpperCase();
+                if (!assentosUnicos.add(codigoFormatado)) {
+                    throw new RegraDeNegocioException("Assento duplicado na solicitação: " + codigoFormatado);
+                }
+            }
+
+            // 2. Validação prévia de existência e disponibilidade de todos os assentos (tudo ou nada)
+            List<Assento> assentosParaReservar = new ArrayList<>();
+            for (String codigoFormatado : assentosUnicos) {
                 if (!sessao.existeAssento(codigoFormatado)) {
                     throw new AssentoIndisponivelException("O assento " + codigoFormatado + " não existe na sala desta sessão.");
                 }
@@ -75,16 +86,16 @@ public class ReservaService {
                 assentosParaReservar.add(sessao.getAssentos().get(codigoFormatado));
             }
 
-            // 2. Ocupação atômica dos assentos
+            // 3. Ocupação atômica dos assentos
             for (Assento a : assentosParaReservar) {
                 sessao.ocuparAssento(a.getCodigo());
             }
 
-            // 3. Criação e confirmação da reserva
+            // 4. Criação e confirmação da reserva
             Reserva reserva = new Reserva(cliente, sessao, assentosParaReservar);
             reserva.confirmar();
 
-            // 4. Persistência
+            // 5. Persistência
             sessaoRepository.salvar(sessao);
             reservaRepository.salvar(reserva);
 
@@ -100,6 +111,10 @@ public class ReservaService {
     public void cancelarReserva(String reservaId) {
         Reserva reserva = reservaRepository.buscarPorId(reservaId)
                 .orElseThrow(() -> new EntidadeNaoEncontradaException("Reserva com ID " + reservaId + " não foi encontrada."));
+
+        if (reserva.getStatus() == br.com.cinereserve.model.StatusReserva.CANCELADA) {
+            throw new RegraDeNegocioException("A reserva " + reservaId + " já se encontra cancelada.");
+        }
 
         String sessaoId = reserva.getSessao().getId();
         ReentrantLock lock = obterLockSessao(sessaoId);

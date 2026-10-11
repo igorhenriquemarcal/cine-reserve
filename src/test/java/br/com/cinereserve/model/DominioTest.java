@@ -91,4 +91,19 @@ class DominioTest {
 
         assertThrows(IllegalStateException.class, reserva::confirmar);
     }
+
+    @Test
+    @DisplayName("Deve validar formato de e-mail e normalizar CPF do Cliente")
+    void deveValidarEmailENormalizarCpfDoCliente() {
+        // CPF sem máscara deve ser formatado
+        Cliente c1 = new Cliente("Lucas", "lucas@teste.com", "12345678901");
+        assertEquals("123.456.789-01", c1.getCpf());
+        assertEquals("lucas@teste.com", c1.getEmail());
+
+        // E-mail inválido deve falhar
+        assertThrows(IllegalArgumentException.class, () -> new Cliente("Lucas", "email-invalido", "12345678901"));
+
+        // CPF com tamanho diferente de 11 dígitos deve falhar
+        assertThrows(IllegalArgumentException.class, () -> new Cliente("Lucas", "lucas@teste.com", "12345"));
+    }
 }

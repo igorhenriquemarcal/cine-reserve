@@ -65,8 +65,8 @@ public class Main {
             LocalDateTime amanha = LocalDateTime.now().plusDays(1).withHour(19).withMinute(30).withSecond(0).withNano(0);
             LocalDateTime depoisDeAmanha = LocalDateTime.now().plusDays(2).withHour(21).withMinute(0).withSecond(0).withNano(0);
 
-            Sessao s1 = new Sessao("Interestelar (IMAX)", amanha, new BigDecimal("32.00"), assentosSala);
-            Sessao s2 = new Sessao("Oppenheimer", depoisDeAmanha, new BigDecimal("35.00"), assentosSala);
+            Sessao s1 = new Sessao("sessao-imax-01", "Interestelar (IMAX)", amanha, new BigDecimal("32.00"), assentosSala);
+            Sessao s2 = new Sessao("sessao-oppenheimer-02", "Oppenheimer", depoisDeAmanha, new BigDecimal("35.00"), assentosSala);
 
             sessaoRepo.salvar(s1);
             sessaoRepo.salvar(s2);
